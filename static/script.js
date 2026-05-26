@@ -1,0 +1,130 @@
+let draggedItem = null;
+
+// kéo
+document.querySelectorAll('.item').forEach(item => {
+    item.addEventListener('dragstart', function() {
+        draggedItem = this;
+    });
+});
+
+// thả
+document.querySelectorAll('.box').forEach(box => {
+
+    box.addEventListener('dragover', e => e.preventDefault());
+
+    box.addEventListener('drop', function() {
+        this.appendChild(draggedItem);
+        checkAllPlaced();
+    });
+
+});
+
+
+// ✅ hiện nút khi đã kéo hết
+function checkAllPlaced(){
+    const items = document.querySelectorAll('.item');
+    let placed = 0;
+
+    items.forEach(item => {
+        if(item.parentElement.classList.contains("box")){
+            placed++;
+        }
+    });
+
+    if(placed === items.length){
+        document.getElementById("checkBtn").style.display = "inline-block";
+    }
+}
+
+
+// ✅ kiểm tra
+document.getElementById("checkBtn").addEventListener("click", () => {
+
+    let promises = [];
+    let score = 0;
+
+    document.querySelectorAll('.item').forEach(item => {
+
+        let imageName = item.dataset.name;
+        let category = item.parentElement.dataset.type;
+
+        promises.push(
+            fetch('/check', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    image: imageName,
+                    category: category
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                item.style.border = "4px solid";
+
+                if(data.correct){
+                    item.style.borderColor = "green";
+                    score++;
+                } else {
+                    item.style.borderColor = "red";
+                }
+            })
+        );
+    });
+
+    // Promise.all(promises).then(()=>{
+    //     alert("Điểm: " + score + "/12");
+    // });
+
+});
+
+// ✅ XỬ LÝ NÚT KIỂM TRA + POPUP
+document.getElementById("checkBtn").addEventListener("click", () => {
+
+    let promises = [];
+    let score = 0;
+    let total = 0;
+
+    document.querySelectorAll('.item').forEach(item => {
+
+        total++;
+
+        let imageName = item.dataset.name;
+        let category = item.parentElement.dataset.type;
+
+        promises.push(
+            fetch('/check', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    image: imageName,
+                    category: category
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                item.style.border = "4px solid";
+
+                if(data.correct){
+                    item.style.borderColor = "green";
+                    score++;
+                } else {
+                    item.style.borderColor = "red";
+                }
+            })
+        );
+    });
+
+    Promise.all(promises).then(()=>{
+        
+        // ✅ hiển thị điểm vào popup
+        document.getElementById("resultText").innerHTML =
+            "✅ Bạn đạt: <b>" + score + " / " + total + "</b>";
+
+        // ✅ mở popup
+        let modal = new bootstrap.Modal(document.getElementById('resultModal'));
+        modal.show();
+    });
+
+});

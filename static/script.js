@@ -1,3 +1,18 @@
+const correctAnswers = {
+  "fami.jpg": "organic",
+  "pallet_go.jpg": "recycle",
+  "vo_hoa_qua.jpg": "organic",
+  "ac_quy.jpg": "hazard",
+  "pallet_nhua.jpg": "recycle",
+  "thuc_an.jpg": "organic",
+  "son.jpg": "hazard",
+  "chai_nhua.jpg": "recycle",
+  "rac_hoa_chat.jpg": "hazard",
+  "nilon.jpg": "recycle",
+  "hop_xop.jpg": "organic",
+  "pin.jpg": "hazard"
+};
+
 let draggedItem = null;
 
 // kéo
@@ -80,51 +95,30 @@ document.getElementById("checkBtn").addEventListener("click", () => {
 
 // ✅ XỬ LÝ NÚT KIỂM TRA + POPUP
 document.getElementById("checkBtn").addEventListener("click", () => {
+  let score = 0;
+  let total = 0;
 
-    let promises = [];
-    let score = 0;
-    let total = 0;
+  document.querySelectorAll('.item').forEach(item => {
+    total++;
 
-    document.querySelectorAll('.item').forEach(item => {
+    let imageName = item.dataset.name;
+    let category = item.parentElement.dataset.type;
 
-        total++;
+    item.style.border = "4px solid";
 
-        let imageName = item.dataset.name;
-        let category = item.parentElement.dataset.type;
+    if (correctAnswers[imageName] === category) {
+      item.style.borderColor = "green";
+      score++;
+    } else {
+      item.style.borderColor = "red";
+    }
+  });
 
-        promises.push(
-            fetch('/check', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    image: imageName,
-                    category: category
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
+  // Hiện kết quả
+  document.getElementById("resultText").innerHTML =
+    "✅ Bạn đạt: <b>" + score + " / " + total + "</b>";
 
-                item.style.border = "4px solid";
-
-                if(data.correct){
-                    item.style.borderColor = "green";
-                    score++;
-                } else {
-                    item.style.borderColor = "red";
-                }
-            })
-        );
-    });
-
-    Promise.all(promises).then(()=>{
-        
-        // ✅ hiển thị điểm vào popup
-        document.getElementById("resultText").innerHTML =
-            "✅ Bạn đạt: <b>" + score + " / " + total + "</b>";
-
-        // ✅ mở popup
-        let modal = new bootstrap.Modal(document.getElementById('resultModal'));
-        modal.show();
-    });
-
+  let modal = new bootstrap.Modal(document.getElementById('resultModal'));
+  modal.show();
 });
+``

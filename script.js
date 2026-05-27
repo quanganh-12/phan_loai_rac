@@ -53,15 +53,27 @@ document.querySelectorAll('.box').forEach(box => {
     e.preventDefault(); // ❗ chặn scroll khi kéo
   });
 
-  box.addEventListener('touchend', function () { 
-    if (touchItem) { 
-      e.preventDefault(); 
-      this.appendChild(touchItem); 
-      touchItem.classList.remove('dragging');
-      touchItem = null; 
-      checkAllPlaced(); 
-    } 
-  }); 
+  box.addEventListener('touchend', function (e) {
+  e.preventDefault();
+
+  if (!touchItem) return;
+
+  // Lấy vị trí ngón tay khi thả
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+  // Tìm box gần nhất
+  const dropBox = target.closest('.box');
+
+  if (dropBox) {
+    dropBox.appendChild(touchItem);
+  }
+
+  touchItem.classList.remove('dragging');
+  touchItem = null;
+
+  checkAllPlaced();
+  });
 
 });
 

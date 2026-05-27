@@ -17,16 +17,16 @@ let touchItem = null;
 let draggedItem = null;
 
 /* ======================
- ✅ KÉO PC
+ ✅ KÉO PC + MOBILE START
 ====================== */
 document.querySelectorAll('.item').forEach(item => {
 
-  // PC drag
+  // PC
   item.addEventListener('dragstart', function () {
     draggedItem = this;
   });
 
-  // MOBILE start
+  // MOBILE
   item.addEventListener('touchstart', function () {
     touchItem = this;
     this.classList.add('dragging');
@@ -49,7 +49,7 @@ document.querySelectorAll('.box').forEach(box => {
 });
 
 /* ======================
- ✅ MOBILE MOVE (di chuyển theo tay)
+ ✅ MOBILE MOVE
 ====================== */
 document.addEventListener('touchmove', function (e) {
   if (!touchItem) return;
@@ -63,25 +63,29 @@ document.addEventListener('touchmove', function (e) {
 });
 
 /* ======================
- ✅ MOBILE DROP (QUAN TRỌNG)
+ ✅ MOBILE DROP (FIX CHÍNH)
 ====================== */
 document.addEventListener('touchend', function (e) {
   if (!touchItem) return;
 
   const touch = e.changedTouches[0];
 
-  const target = document.elementFromPoint(
+  let target = document.elementFromPoint(
     touch.clientX,
     touch.clientY
   );
 
-  const dropBox = target.closest('.box');
-
-  if (dropBox) {
-    dropBox.appendChild(touchItem);
+  // 🔥 FIX: dò lên cha tới khi gặp .box
+  while (target && !target.classList.contains('box')) {
+    target = target.parentElement;
   }
 
-  // reset vị trí
+  // nếu có box -> drop vào
+  if (target && target.classList.contains('box')) {
+    target.appendChild(touchItem);
+  }
+
+  // reset
   touchItem.style.position = "static";
   touchItem.style.left = "";
   touchItem.style.top = "";

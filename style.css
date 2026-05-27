@@ -17,6 +17,19 @@
     margin: 10px;
     font-weight: bold;
 }
+/* ✅ fix mobile kéo không bị scroll */
+.item {
+  touch-action: none;
+  user-select: none;
+}
+
+/* ✅ khi đang kéo */
 .item.dragging {
-  opacity: 0.5;
+  opacity: 0.6;
+  transform: scale(1.05);
+}
+
+/* ✅ mượt hơn trên mobile */
+.box {
+  -webkit-user-select: none;
 }

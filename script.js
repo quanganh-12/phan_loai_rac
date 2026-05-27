@@ -75,27 +75,26 @@ document.addEventListener('touchend', function (e) {
     touch.clientY
   );
 
-  // 🔥 FIX: dò lên cha tới khi gặp .box
   while (target && !target.classList.contains('box')) {
     target = target.parentElement;
   }
 
-  // nếu có box -> drop vào
   if (target && target.classList.contains('box')) {
     target.appendChild(touchItem);
+
+    // 🔥 FIX QUAN TRỌNG: reset style hoàn toàn
+    touchItem.style.position = "relative";
+    touchItem.style.left = "0px";
+    touchItem.style.top = "0px";
+    touchItem.style.zIndex = "auto";
   }
 
-  // reset
-  touchItem.style.position = "static";
-  touchItem.style.left = "";
-  touchItem.style.top = "";
-  touchItem.style.zIndex = "";
   touchItem.classList.remove('dragging');
-
   touchItem = null;
 
   checkAllPlaced();
 });
+
 
 /* ======================
  ✅ CHECK ĐÃ ĐẶT HẾT

@@ -13,14 +13,11 @@ const correctAnswers = {
   "pin.jpg": "hazard"
 };
 
-
-let originalParent = null;
-let draggedItem = null;
-let touchItem = null;
-
 // =====================
 // ✅ DESKTOP DRAG
 // =====================
+let draggedItem = null;
+
 document.querySelectorAll('.item').forEach(item => {
   item.addEventListener('dragstart', function () {
     draggedItem = this;
@@ -38,69 +35,106 @@ document.querySelectorAll('.box').forEach(box => {
 });
 
 // =====================
-// ✅ MOBILE DRAG REAL (kéo theo tay)
+// ✅ MOBILE DRAG (mượt + chống bấm nhầm)
 // =====================
+let touchItem = null;
+let originalParent = null;
+
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+let offsetX = 0;
+let offsetY = 0;
+
+const DRAG_THRESHOLD = 10; // di chuyển tối thiểu
+const HOLD_DELAY = 150;   // giữ 150ms mới kéo
+
 document.querySelectorAll('.item').forEach(item => {
 
+  let holdTimer = null;
+
   item.addEventListener('touchstart', function (e) {
-  touchItem = this;
-  originalParent = this.parentElement; // ✅ lưu chỗ cũ
-
-  const rect = this.getBoundingClientRect();
-
-  this.style.position = "absolute";
-  this.style.left = rect.left + "px";
-  this.style.top = rect.top + "px";
-  this.style.width = rect.width + "px";
-  this.style.zIndex = "1000";
-
-  document.body.appendChild(this); // ✅ kéo ra ngoài
-  });
-
-
-
-  item.addEventListener('touchmove', function (e) {
-    if (!touchItem) return;
-
     const touch = e.touches[0];
 
-    this.style.left = touch.pageX - this.offsetWidth / 2 + "px";
-    this.style.top = touch.pageY - this.offsetHeight / 2 + "px";
+    startX = touch.clientX;
+    startY = touch.clientY;
 
+    holdTimer = setTimeout(() => {
+      touchItem = this;
+      originalParent = this.parentElement;
+      isDragging = true;
+
+      const rect = this.getBoundingClientRect();
+
+      offsetX = startX - rect.left;
+      offsetY = startY - rect.top;
+
+      this.style.position = "fixed";
+      this.style.left = rect.left + "px";
+      this.style.top = rect.top + "px";
+      this.style.width = rect.width + "px";
+      this.style.zIndex = "1000";
+
+      this.classList.add("dragging");
+
+    }, HOLD_DELAY);
+  });
+
+  item.addEventListener('touchmove', function (e) {
+    const touch = e.touches[0];
+
+    if (!isDragging) {
+      if (
+        Math.abs(touch.clientX - startX) > DRAG_THRESHOLD ||
+        Math.abs(touch.clientY - startY) > DRAG_THRESHOLD
+      ) {
+        clearTimeout(holdTimer);
+      }
+      return;
+    }
+
+    e.preventDefault();
+
+    this.style.left = touch.clientX - offsetX + "px";
+    this.style.top = touch.clientY - offsetY + "px";
   });
 
   item.addEventListener('touchend', function (e) {
-    if (!touchItem) return;
+    clearTimeout(holdTimer);
+
+    if (!isDragging) return;
 
     const touch = e.changedTouches[0];
-    const dropTarget = document.elementFromPoint(
-      touch.clientX,
-      touch.clientY
-    );
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    const box = dropTarget.closest('.box');
+    const box = el?.closest('.box');
 
     if (box) {
-      box.appendChild(touchItem);
-      resetStyle(touchItem);
-      checkAllPlaced();
+      box.appendChild(this);                 // ✅ đổi box được
     } else {
-      // Nếu thả ra ngoài → trả về vị trí cũ
-      resetStyle(touchItem);
+      originalParent.appendChild(this);      // ✅ trả lại vị trí cũ
     }
 
+    resetStyle(this);
+    checkAllPlaced();
+
     touchItem = null;
+    originalParent = null;
+    isDragging = false;
   });
 
 });
 
-// reset style sau khi thả
+// =====================
+// ✅ RESET STYLE
+// =====================
 function resetStyle(el){
   el.style.position = "";
   el.style.left = "";
   el.style.top = "";
   el.style.zIndex = "";
   el.style.width = "";
+  el.classList.remove("dragging");
 }
 
 // =====================

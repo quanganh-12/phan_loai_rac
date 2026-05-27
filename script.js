@@ -13,6 +13,8 @@ const correctAnswers = {
   "pin.jpg": "hazard"
 };
 
+
+let originalParent = null;
 let draggedItem = null;
 let touchItem = null;
 
@@ -42,6 +44,7 @@ document.querySelectorAll('.item').forEach(item => {
 
   item.addEventListener('touchstart', function (e) {
   touchItem = this;
+  originalParent = this.parentElement; // ✅ lưu chỗ cũ
 
   const rect = this.getBoundingClientRect();
 
@@ -51,8 +54,9 @@ document.querySelectorAll('.item').forEach(item => {
   this.style.width = rect.width + "px";
   this.style.zIndex = "1000";
 
-  document.body.appendChild(this); 
+  document.body.appendChild(this); // ✅ kéo ra ngoài
   });
+
 
 
   item.addEventListener('touchmove', function (e) {

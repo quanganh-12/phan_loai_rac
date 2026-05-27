@@ -41,19 +41,13 @@ document.querySelectorAll('.box').forEach(box => {
 document.querySelectorAll('.item').forEach(item => {
 
   item.addEventListener('touchstart', function (e) {
-  touchItem = this;
+    touchItem = this;
 
-  const rect = this.getBoundingClientRect();
+    this.style.position = "absolute";
+    this.style.zIndex = "1000";
+    this.style.width = this.offsetWidth + "px";
 
-  this.style.position = "absolute";
-  this.style.left = rect.left + "px";
-  this.style.top = rect.top + "px";
-  this.style.width = rect.width + "px";
-  this.style.zIndex = "1000";
-
-  document.body.appendChild(this); 
-});
-
+  });
 
   item.addEventListener('touchmove', function (e) {
     if (!touchItem) return;

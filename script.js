@@ -13,53 +13,89 @@ const correctAnswers = {
   "pin.jpg": "hazard"
 };
 
-let touchItem = null;
 let draggedItem = null;
+let touchItem = null;
 
-// kéo
+// =====================
+// ✅ DESKTOP DRAG
+// =====================
 document.querySelectorAll('.item').forEach(item => {
-
-  // desktop
   item.addEventListener('dragstart', function () {
     draggedItem = this;
   });
-
-  // mobile
-  item.addEventListener('touchstart', function () {
-    touchItem = this;
-    this.classList.add('dragging');
-  });
-
 });
 
-// thả
 document.querySelectorAll('.box').forEach(box => {
-
-  // desktop
   box.addEventListener('dragover', e => e.preventDefault());
 
   box.addEventListener('drop', function () {
     this.appendChild(draggedItem);
+    resetStyle(draggedItem);
     checkAllPlaced();
   });
+});
 
-  // mobile
-  box.addEventListener('touchmove', e => {
-    e.preventDefault();
+// =====================
+// ✅ MOBILE DRAG REAL (kéo theo tay)
+// =====================
+document.querySelectorAll('.item').forEach(item => {
+
+  item.addEventListener('touchstart', function (e) {
+    touchItem = this;
+
+    this.style.position = "absolute";
+    this.style.zIndex = "1000";
+    this.style.width = this.offsetWidth + "px";
+
   });
 
-  box.addEventListener('touchend', function () {
-    if (touchItem) {
-      this.appendChild(touchItem);
-      touchItem.classList.remove('dragging');
-      touchItem = null;
+  item.addEventListener('touchmove', function (e) {
+    if (!touchItem) return;
+
+    const touch = e.touches[0];
+
+    this.style.left = touch.pageX - this.offsetWidth / 2 + "px";
+    this.style.top = touch.pageY - this.offsetHeight / 2 + "px";
+
+  });
+
+  item.addEventListener('touchend', function (e) {
+    if (!touchItem) return;
+
+    const touch = e.changedTouches[0];
+    const dropTarget = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY
+    );
+
+    const box = dropTarget.closest('.box');
+
+    if (box) {
+      box.appendChild(touchItem);
+      resetStyle(touchItem);
       checkAllPlaced();
+    } else {
+      // Nếu thả ra ngoài → trả về vị trí cũ
+      resetStyle(touchItem);
     }
+
+    touchItem = null;
   });
 
-}); // ✅ đóng forEach đúng
+});
 
-// hiện nút khi đã kéo hết
+// reset style sau khi thả
+function resetStyle(el){
+  el.style.position = "";
+  el.style.left = "";
+  el.style.top = "";
+  el.style.zIndex = "";
+  el.style.width = "";
+}
+
+// =====================
+// ✅ CHECK ĐÃ KÉO HẾT
+// =====================
 function checkAllPlaced(){
   const items = document.querySelectorAll('.item');
   let placed = 0;
@@ -75,43 +111,9 @@ function checkAllPlaced(){
   }
 }
 
-// kiểm tra
-document.getElementById("checkBtn").addEventListener("click", () => {
-
-  let promises = [];
-  let score = 0;
-
-  document.querySelectorAll('.item').forEach(item => {
-
-    let imageName = item.dataset.name;
-    let category = item.parentElement.dataset.type;
-
-    promises.push(
-      fetch('/check', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          image: imageName,
-          category: category
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        item.style.border = "4px solid";
-
-        if(data.correct){
-          item.style.borderColor = "green";
-          score++;
-        } else {
-          item.style.borderColor = "red";
-        }
-      })
-    );
-  });
-
-});
-
-// popup
+// =====================
+// ✅ CHẤM ĐIỂM + POPUP
+// =====================
 document.getElementById("checkBtn").addEventListener("click", () => {
   let score = 0;
   let total = 0;

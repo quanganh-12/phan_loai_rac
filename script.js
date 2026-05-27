@@ -11,154 +11,133 @@ const correctAnswers = {
  "nilon.jpg": "recycle", 
  "hop_xop.jpg": "organic", 
  "pin.jpg": "hazard" 
-}; 
+};
 
-let touchItem = null; 
-let draggedItem = null; 
+let touchItem = null;
+let draggedItem = null;
 
 /* ======================
-   ✅ KÉO (PC + MOBILE)
+ ✅ KÉO PC
 ====================== */
 document.querySelectorAll('.item').forEach(item => {
 
-  // ✅ PC (GIỮ NGUYÊN)
-  item.addEventListener('dragstart', function () { 
-    draggedItem = this; 
+  // PC drag
+  item.addEventListener('dragstart', function () {
+    draggedItem = this;
   });
 
-  // ✅ MOBILE (THÊM)
-  item.addEventListener('touchstart', function (e) { 
-    touchItem = this; 
+  // MOBILE start
+  item.addEventListener('touchstart', function () {
+    touchItem = this;
     this.classList.add('dragging');
   });
 
 });
 
-
 /* ======================
-   ✅ THẢ (PC + MOBILE)
+ ✅ THẢ PC
 ====================== */
-document.querySelectorAll('.box').forEach(box => { 
+document.querySelectorAll('.box').forEach(box => {
 
-  // ✅ PC (GIỮ NGUYÊN)
-  box.addEventListener('dragover', e => e.preventDefault()); 
+  box.addEventListener('dragover', e => e.preventDefault());
 
-  box.addEventListener('drop', function () { 
-    this.appendChild(draggedItem); 
-    checkAllPlaced(); 
-  }); 
-
-  // ✅ MOBILE (QUAN TRỌNG)
-  box.addEventListener('touchmove', e => { 
-    e.preventDefault(); // ❗ chặn scroll khi kéo
+  box.addEventListener('drop', function () {
+    this.appendChild(draggedItem);
+    checkAllPlaced();
   });
 
-  box.addEventListener('touchend', function (e) {
-  e.preventDefault();
+});
 
+/* ======================
+ ✅ MOBILE MOVE (di chuyển theo tay)
+====================== */
+document.addEventListener('touchmove', function (e) {
   if (!touchItem) return;
 
-  // Lấy vị trí ngón tay khi thả
-  const touch = e.changedTouches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const touch = e.touches[0];
 
-  // Tìm box gần nhất
+  touchItem.style.position = "absolute";
+  touchItem.style.left = (touch.clientX - 50) + "px";
+  touchItem.style.top = (touch.clientY - 50) + "px";
+  touchItem.style.zIndex = 1000;
+});
+
+/* ======================
+ ✅ MOBILE DROP (QUAN TRỌNG)
+====================== */
+document.addEventListener('touchend', function (e) {
+  if (!touchItem) return;
+
+  const touch = e.changedTouches[0];
+
+  const target = document.elementFromPoint(
+    touch.clientX,
+    touch.clientY
+  );
+
   const dropBox = target.closest('.box');
 
   if (dropBox) {
     dropBox.appendChild(touchItem);
   }
 
+  // reset vị trí
+  touchItem.style.position = "static";
+  touchItem.style.left = "";
+  touchItem.style.top = "";
+  touchItem.style.zIndex = "";
   touchItem.classList.remove('dragging');
+
   touchItem = null;
 
   checkAllPlaced();
+});
+
+/* ======================
+ ✅ CHECK ĐÃ ĐẶT HẾT
+====================== */
+function checkAllPlaced(){
+  const items = document.querySelectorAll('.item');
+  let placed = 0;
+
+  items.forEach(item => {
+    if(item.parentElement.classList.contains("box")){
+      placed++;
+    }
   });
 
-});
-
-
-/* ======================
-   ✅ CHECK ĐÃ ĐẶT HẾT
-====================== */
-function checkAllPlaced(){ 
-  const items = document.querySelectorAll('.item'); 
-  let placed = 0; 
-
-  items.forEach(item => { 
-    if(item.parentElement.classList.contains("box")){ 
-      placed++; 
-    } 
-  }); 
-
-  if(placed === items.length){ 
-    document.getElementById("checkBtn").style.display = "inline-block"; 
-  } 
-} 
-
+  if(placed === items.length){
+    document.getElementById("checkBtn").style.display = "inline-block";
+  }
+}
 
 /* ======================
-   ✅ CHECK SERVER (GIỮ)
+ ✅ CHECK KẾT QUẢ
 ====================== */
-document.getElementById("checkBtn").addEventListener("click", () => { 
-  let promises = []; 
-  let score = 0; 
+document.getElementById("checkBtn").addEventListener("click", () => {
 
-  document.querySelectorAll('.item').forEach(item => { 
-    let imageName = item.dataset.name; 
-    let category = item.parentElement.dataset.type; 
+  let score = 0;
+  let total = 0;
 
-    promises.push( 
-      fetch('/check', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ 
-          image: imageName, 
-          category: category 
-        }) 
-      }) 
-      .then(res => res.json()) 
-      .then(data => { 
-        item.style.border = "4px solid"; 
+  document.querySelectorAll('.item').forEach(item => {
+    total++;
 
-        if(data.correct){ 
-          item.style.borderColor = "green"; 
-          score++; 
-        } else { 
-          item.style.borderColor = "red"; 
-        } 
-      }) 
-    ); 
-  }); 
-});
+    let imageName = item.dataset.name;
+    let category = item.parentElement.dataset.type;
 
+    item.style.border = "4px solid";
 
-/* ======================
-   ✅ POPUP (GIỮ)
-====================== */
-document.getElementById("checkBtn").addEventListener("click", () => { 
-  let score = 0; 
-  let total = 0; 
+    if (correctAnswers[imageName] === category) {
+      item.style.borderColor = "green";
+      score++;
+    } else {
+      item.style.borderColor = "red";
+    }
+  });
 
-  document.querySelectorAll('.item').forEach(item => { 
-    total++; 
+  document.getElementById("resultText").innerHTML =
+    " Bạn đạt: <b>" + score + " / " + total + "</b>";
 
-    let imageName = item.dataset.name; 
-    let category = item.parentElement.dataset.type; 
-
-    item.style.border = "4px solid"; 
-
-    if (correctAnswers[imageName] === category) { 
-      item.style.borderColor = "green"; 
-      score++; 
-    } else { 
-      item.style.borderColor = "red"; 
-    } 
-  }); 
-
-  document.getElementById("resultText").innerHTML = 
-    "✅ Bạn đạt: <b>" + score + " / " + total + "</b>"; 
-
-  let modal = new bootstrap.Modal(document.getElementById('resultModal')); 
-  modal.show(); 
+  let modal = new bootstrap.Modal(document.getElementById('resultModal'));
+  modal.show();
 });

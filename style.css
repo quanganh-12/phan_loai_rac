@@ -27,6 +27,7 @@
 .item.dragging {
   opacity: 0.6;
   transform: scale(1.05);
+  pointer-events: none;
 }
 
 /* ✅ mượt hơn trên mobile */

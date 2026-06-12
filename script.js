@@ -114,6 +114,10 @@ function checkAllPlaced(){
   }
 }
 
+document.getElementById("resetBtn").onclick = () => {
+  location.reload();
+};
+
 /* ======================
  ✅ CHECK KẾT QUẢ
 ====================== */
